@@ -88,5 +88,19 @@ router.post("/add", adminRequired, function (req, res, next) {
         res.render("competitions/form", { result: { database_error: true } });
     }
 });
+//partisipants list
+router.post("/add", adminRequired, function (req, res, next)
+{const result = schema_add.validate(req.body);
+    if (result.error) {
+res.render("competitons/partisipants",{result: {validate_error: true, display_form: true}});
+return;
+    }
+    
+    const CheckStmt = db.prepare("SELECT * FROM Partisipans WHEN user_id = ? AND competitons_id = ?;");
+    const signupResult = stmt.run(req.user);
+
+
+
+})
 
 module.exports = router;

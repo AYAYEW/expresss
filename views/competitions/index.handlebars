@@ -14,7 +14,7 @@
                     <th>Opis</th>
                     <th>Rok prijave</th>
                     <th>Autor</th>
-                   {{#if user.is_admin}} <th>Mogućnosti</th>{{/if}}
+                   <th>Mogućnosti</th>
                 </tr>
             </thead>
             <!-- body -->
@@ -40,7 +40,7 @@
                         
 
                 {{#if user.is_admin}}
-                    <a herf="/partisipans" class="btn btn-primary">Partisipans</a>
+                    <a herf="/views/competitions/partisipants" class="btn btn-primary">Prijava</a>
                     {{/if}}
                     </td>
                 </tr>
