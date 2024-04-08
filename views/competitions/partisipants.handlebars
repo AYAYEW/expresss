@@ -1,46 +1,35 @@
-<div class="hero min-h-screen bg-base-200">
-    <div class="hero-content">
-        <div class="max-w-md">
-            <h1 class="text-5xl font-bold">Prijava natjecatelja</h1>
-
-            {{#if result.display_form}}
-            <form method="post" action="/competitions">
-                <div class="py-6">
-                    <div>
-                        <label class="form-control w-full max-w-xs">
-                            <div class="label">
-                                <span class="label-text">Ime i prezime</span>
-                            </div>
-                            <input type="text" name="name" placeholder="Upišite svoje ime i prezime"
-                                class="input input-bordered w-full max-w-xs" required="" />
-                        </label>
-                    </div>
-                </div>
-                <input type="submit" class="btn btn-primary" value="Potvrdi" />
-                <input type="reset" class="btn btn-neutral" value="Poništi" />
-            </form>
-            {{/if}}
-
-            {{#if result.validation_error}}
-            {{> validation_error }}
-            {{/if}}
-
-            {{#if result.database_error}}
-            {{> database_error }}
-            {{/if}}
-
-            {{#if result.success}}
-            <div class="mt-4">
-                <div class="card w-96 bg-primary text-primary-content">
-                    <div class="card-body">
-                        <h2 class="card-title">Uspjeh!</h2>
-                        <p>
-                            Uspješno ste se Prijavili na natjecanje.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            {{/if}}
-        </div>
-    </div>
+module.exports = router;
+<div class="overflow-x-auto">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>IME I PREZIME</th>
+                <th>NAZIV NATJECANJA</th>
+                <th>DATUM PRIJAVE</th>
+                <th>UKUPNI BROJ BODOVA</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each result.items}}
+            <tr id="row-{{this.id}}">
+                <td>{{this.id}}</td>
+                <td>{{this.participant}}</td>
+                <td>{{this.competition}}</td>
+                <td>{{this.appeared_At}}</td>
+                <td>{{this.points}}</td>
+                <td class="flex flex-wrap gap-2">
+                    {{#if ../user.is_admin}}
+                    <form id="form-{{this.id}}" method="post" action="/competitions/points/{{this.id}}" class="flex items-center">
+                        <input type="text" name="score" placeholder="Unesite broj bodova natjecatelja" class="input input-bordered w-full max-w-xs mr-2" style="width: 230px;" />
+                        <input type="hidden" name="_method" value="PUT">
+                        <input type="submit" class="btn btn-primary" value="Potvrda unosa"/>
+                    </form>
+                    {{/if}}
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
 </div>

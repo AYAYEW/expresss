@@ -88,19 +88,114 @@ router.post("/add", adminRequired, function (req, res, next) {
         res.render("competitions/form", { result: { database_error: true } });
     }
 });
-//partisipants list
-router.post("/add", adminRequired, function (req, res, next)
-{const result = schema_add.validate(req.body);
+//get / participants
+//fix
+//router.get("/", authRequired, function (req, res, next) {
+    //const stmt = db.prepare(
+        //SELECT p.id, p.competition_id, p.user_id, p.points, p.appeared_At
+        //FROM participants p, users u
+        //WHERE p.user_id = u.id
+        //ORDER BY p.id
+        //);
+    //const result = stmt.all();
+
+    //res.render("competitions/points", { result: { items: result } });
+
+//});
+
+//Get /competitions/login/:id
+
+router.get("/login/:id", function (req, res, next) {
+
+    const result = schema_id.validate(req.params);
     if (result.error) {
-res.render("competitons/partisipants",{result: {validate_error: true, display_form: true}});
-return;
+        throw new Error("Neispravan poziv");
     }
-    
-    const CheckStmt = db.prepare("SELECT * FROM Partisipans WHEN user_id = ? AND competitons_id = ?;");
-    const signupResult = stmt.run(req.user);
+
+    const stmt = db.prepare(
+        "INSERT INTO participants (user_id, competition_id, appeared_At) VALUES (?, ?, ?);"
+    );
+    const checkStmt = db.prepare(
+        "SELECT * FROM participants WHERE user_id = ? AND competition_id = ?;"
+    );
+
+    const existingSignUp = checkStmt.get(req.user.sub, req.params.id);
+
+    if (existingSignUp) {
+        // Korisnik je već prijavljen
+        res.render("competitions/login", { result: { alreadySignedUp: true } });
+    }
+    if (!existingSignUp) {
+        const signUpResult = stmt.run(req.user.sub, req.params.id, new Date().toISOString());
 
 
+        if (signUpResult.changes && signUpResult.changes === 1) {
+            res.render("competitions/login", { result: { signedUp: true } });
 
-})
+        } else {
+            res.render("competitions/login", { result: { database_error: true } });
+        }
+    } }); 
+    // GET /competitions/score/:id
+router.get("/points/:id", function (req, res, next) {
+    // do validation
+    const result = schema_id.validate(req.params);
+    if (result.error) {
+        throw new Error("Neispravan poziv");
+    }
+
+    const stmt = db.prepare(
+        "SELECT p.id, u.name AS participant, p.appeared_At, p.points, c.name AS competition FROM participants p JOIN users u ON p.user_id = u.id JOIN competitions c ON p.competition_id = c.id WHERE c.id = ? ORDER BY p.points DESC"
+    );
+    const dbResult = stmt.all(req.params.id);
+
+    res.render("competitions/points", { result: { items: dbResult } });
+});
+
+// POST /competitions/score/:id
+router.post("/points/:id", authRequired, function (req, res, next) {
+    // do validation
+    const result = schema_id.validate({ id: req.params.id }); // Validacija ID-a
+    if (result.error) {
+        throw new Error("Neispravan poziv");
+    }
+
+    const score = parseInt(req.body.score);
+
+    if (isNaN(score)) {
+        res.render("competitions/points", {
+            result: { validation_error: true },
+        });
+        return;
+    }
+
+    const stmt = db.prepare("UPDATE participants SET points = ? WHERE id = ?;");
+    const updateResult = stmt.run(score, req.params.id); // Ovdje koristimo req.params.id
+
+    if (updateResult.changes && updateResult.changes === 1) {
+        res.redirect("/competitions");
+    } else {
+        res.render("/competitions/form", {
+            result: { database_error: true },
+        });
+        return;
+    }
+});
+// GET /competitions/score/:id
+router.get("/review/:id", function (req, res, next) {
+    // do validation
+    const result = schema_id.validate(req.params);
+    if (result.error) {
+        throw new Error("Neispravan poziv");
+    }
+const stmt = db.prepare(
+        "SELECT p.id, u.name AS participant, p.appeared_At, p.points, c.name AS competition FROM participants p JOIN users u ON p.user_id = u.id JOIN competitions c ON p.competition_id = c.id WHERE c.id = ? ORDER BY p.points DESC"
+    );
+    const dbResult = stmt.all(req.params.id);
+
+    res.render("competitions/review", { result: { items: dbResult } });
+});
+
+
 
 module.exports = router;
